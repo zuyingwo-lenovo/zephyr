@@ -368,7 +368,13 @@ static DEVICE_API(display, rm69310_driver_api) = {
 		.remap_value = DT_PROP(node_id, remap_value),                                      \
 	};                                                                                         \
                                                                                                    \
-	DEVICE_DT_DEFINE(node_id, rm69310_init, NULL, NULL, &config##node_id,                      \
-			 POST_KERNEL, CONFIG_DISPLAY_INIT_PRIORITY, &rm69310_driver_api);
+	DEVICE_DT_DEFINE(node_id,                                                                  \
+			rm69310_init,                                                              \
+			NULL,                                                                      \
+			NULL,                                                                      \
+			&config##node_id,                                                          \
+			POST_KERNEL,                                                               \
+			CONFIG_DISPLAY_INIT_PRIORITY,                                              \
+			&rm69310_driver_api);
 
 DT_FOREACH_STATUS_OKAY(lenovo_rm69310, RM69310_DEFINE_MIPI)

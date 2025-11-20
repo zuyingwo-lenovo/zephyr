@@ -16,40 +16,42 @@ LOG_MODULE_REGISTER(rm69310, CONFIG_DISPLAY_LOG_LEVEL);
 #include <zephyr/drivers/mipi_dbi.h>
 #include <zephyr/kernel.h>
 
-#define RM69310_DISPLAY_OFF         0xAE
-#define RM69310_DISPLAY_ON          0xAF
-#define RM69310_SET_NORMAL_DISPLAY  0xA4
-#define RM69310_SET_REVERSE_DISPLAY 0xA7
+#define RM69310_WR_CMD_MODE_PAGE    0xFE
+#define RM69310_DISPLAY_OFF         0x28
+#define RM69310_DISPLAY_ON          0x29
+#define RM69310_SET_NORMAL_DISPLAY  0x20
+#define RM69310_SET_REVERSE_DISPLAY 0x21
 
-#define RM69310_SET_COLUMN_ADDR 0x15
-#define RM69310_SET_ROW_ADDR    0x75
+#define RM69310_SET_COLUMN_ADDR 0x2A
+#define RM69310_SET_ROW_ADDR    0x2B
 
-#define RM69310_SET_DISPLAY_START_LINE 0xA1
-#define RM69310_SET_DISPLAY_OFFSET     0xA2
-#define RM69310_SET_MULTIPLEX_RATIO    0xA8
-#define RM69310_SET_PHASE_LENGTH       0xB1
-#define RM69310_SET_OSC_FREQ           0xB3
-#define RM69310_SET_PRECHARGE_A        0x8A
-#define RM69310_SET_PRECHARGE_B        0x8B
-#define RM69310_SET_PRECHARGE_C        0x8C
-#define RM69310_SET_PRECHARGE_V        0xBB
-#define RM69310_SET_VCOMH              0xBE
-#define RM69310_SET_CURRENT_ATT        0x87
-#define RM69310_SET_REMAP              0xA0
-#define RM69310_DISABLE_SCROLL         0x2E
+#define RM69310_TE_LINE_ON     0x35
+#define RM69310_TE_LINE_OFF    0x34
 
-#define RM69310_SET_EXTERNAL_SUPPLY 0xAD
-#define RM69310_EXTERNAL_SUPPLY     0x8E
+#define RM69310TBD_SET_DISPLAY_START_LINE 0xA1
+#define RM69310TBD_SET_DISPLAY_OFFSET     0xA2
+#define RM69310TBD_SET_MULTIPLEX_RATIO    0xA8
+#define RM69310TBD_SET_PHASE_LENGTH       0xB1
+#define RM69310TBD_SET_OSC_FREQ           0xB3
+#define RM69310TBD_SET_PRECHARGE_A        0x8A
+#define RM69310TBD_SET_PRECHARGE_B        0x8B
+#define RM69310TBD_SET_PRECHARGE_C        0x8C
+#define RM69310TBD_SET_PRECHARGE_V        0xBB
+#define RM69310TBD_SET_VCOMH              0xBE
+#define RM69310TBD_SET_CURRENT_ATT        0x87
+#define RM69310TBD_SET_REMAP              0xA0
+#define RM69310TBD_DISABLE_SCROLL         0x2E
 
-#define RM69310_SET_POWER_SAVE 0xB0
-#define RM69310_POWER_SAVE     0x1A
-#define RM69310_NOT_POWER_SAVE 0x0B
+#define RM69310TBD_SET_EXTERNAL_SUPPLY 0xAD
+#define RM69310TBD_EXTERNAL_SUPPLY     0x8E
 
-#define RM69310_CONTRASTA 0x81
-#define RM69310_CONTRASTB 0x82
-#define RM69310_CONTRASTC 0x83
+#define RM69310TBD_SET_POWER_SAVE 0xB0
+#define RM69310TBD_POWER_SAVE     0x1A
+#define RM69310TBD_NOT_POWER_SAVE 0x0B
 
-#define RM69310_RESET_DELAY 10
+#define RM69310_BRIGHTNESS   0x51
+
+#define RM69310_RESET_DELAY 100
 
 struct rm69310_config {
 	const struct device *mipi_dev;
@@ -100,65 +102,65 @@ static inline int rm69310_set_hardware_config(const struct device *dev)
 	int err;
 	uint8_t tmp;
 
-	err = rm69310_write_command(dev, RM69310_SET_REMAP, &config->remap_value, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_REMAP, &config->remap_value, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_DISPLAY_START_LINE, &config->start_line, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_DISPLAY_START_LINE, &config->start_line, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_DISPLAY_OFFSET, &config->display_offset, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_DISPLAY_OFFSET, &config->display_offset, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_MULTIPLEX_RATIO, &config->multiplex_ratio, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_MULTIPLEX_RATIO, &config->multiplex_ratio, 1);
 	if (err < 0) {
 		return err;
 	}
-	tmp = RM69310_EXTERNAL_SUPPLY;
-	err = rm69310_write_command(dev, RM69310_SET_EXTERNAL_SUPPLY, &tmp, 1);
+	tmp = RM69310TBD_EXTERNAL_SUPPLY;
+	err = rm69310_write_command(dev, RM69310TBD_SET_EXTERNAL_SUPPLY, &tmp, 1);
 	if (err < 0) {
 		return err;
 	}
-	tmp = config->power_save ? RM69310_POWER_SAVE : RM69310_NOT_POWER_SAVE;
-	err = rm69310_write_command(dev, RM69310_SET_POWER_SAVE, &tmp, 1);
+	tmp = config->power_save ? RM69310TBD_POWER_SAVE : RM69310TBD_NOT_POWER_SAVE;
+	err = rm69310_write_command(dev, RM69310TBD_SET_POWER_SAVE, &tmp, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_PHASE_LENGTH, &config->phase_length, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_PHASE_LENGTH, &config->phase_length, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_OSC_FREQ, &config->oscillator_freq, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_OSC_FREQ, &config->oscillator_freq, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_PRECHARGE_A, &config->precharge_time_a, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_PRECHARGE_A, &config->precharge_time_a, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_PRECHARGE_B, &config->precharge_time_b, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_PRECHARGE_B, &config->precharge_time_b, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_PRECHARGE_C, &config->precharge_time_c, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_PRECHARGE_C, &config->precharge_time_c, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_PRECHARGE_V, &config->precharge_voltage, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_PRECHARGE_V, &config->precharge_voltage, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_VCOMH, &config->vcomh_voltage, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_VCOMH, &config->vcomh_voltage, 1);
 	if (err < 0) {
 		return err;
 	}
-	err = rm69310_write_command(dev, RM69310_SET_CURRENT_ATT, &config->current_att, 1);
+	err = rm69310_write_command(dev, RM69310TBD_SET_CURRENT_ATT, &config->current_att, 1);
 	if (err < 0) {
 		return err;
 	}
-	return rm69310_write_command(dev, RM69310_DISABLE_SCROLL, NULL, 0);
+	return rm69310_write_command(dev, RM69310TBD_DISABLE_SCROLL, NULL, 0);
 }
 
 static int rm69310_resume(const struct device *dev)
@@ -207,7 +209,7 @@ static int rm69310_write(const struct device *dev, const uint16_t x, const uint1
 		return -EINVAL;
 	}
 
-	LOG_DBG("x %u, y %u, pitch %u, width %u, height %u, buf_len %u", x, y, desc->pitch,
+	LOG_DBG("x %u, y %u, pitch %u, width %u, height %u, buf_len %lu", x, y, desc->pitch,
 		desc->width, desc->height, buf_len);
 
 	err = rm69310_write_command(dev, RM69310_SET_COLUMN_ADDR, x_position, 2);
@@ -230,21 +232,10 @@ static int rm69310_write(const struct device *dev, const uint16_t x, const uint1
 
 static int rm69310_set_contrast(const struct device *dev, const uint8_t contrast)
 {
-	int err;
 	uint8_t tmp;
 
-	tmp = (contrast * CONFIG_RM69310_CONTRASTA) / 0xFF;
-	err = rm69310_write_command(dev, RM69310_CONTRASTA, &tmp, 1);
-	if (err < 0) {
-		return err;
-	}
-	tmp = (contrast * CONFIG_RM69310_CONTRASTB) / 0xFF;
-	err = rm69310_write_command(dev, RM69310_CONTRASTB, &tmp, 1);
-	if (err < 0) {
-		return err;
-	}
-	tmp = (contrast * CONFIG_RM69310_CONTRASTC) / 0xFF;
-	return rm69310_write_command(dev, RM69310_CONTRASTC, &tmp, 1);
+	tmp = contrast / 0xFF;
+	return rm69310_write_command(dev, RM69310_BRIGHTNESS, &tmp, 1);
 }
 
 static void rm69310_get_capabilities(const struct device *dev, struct display_capabilities *caps)
@@ -284,7 +275,7 @@ static int rm69310_init_device(const struct device *dev)
 		return err;
 	}
 
-	err = rm69310_set_contrast(dev, CONFIG_RM69310_DEFAULT_CONTRAST);
+	err = rm69310_set_contrast(dev, CONFIG_RM69310_DEFAULT_BRIGHTNESS);
 	if (err < 0) {
 		return err;
 	}
@@ -341,15 +332,15 @@ static DEVICE_API(display, rm69310_driver_api) = {
 	.set_pixel_format = rm69310_set_pixel_format,
 };
 
-#define RM69310_WORD_SIZE(inst)                                                                    \
+#define RM69310TBD_WORD_SIZE(inst)                                                                    \
 	((DT_STRING_UPPER_TOKEN(inst, mipi_mode) == MIPI_DBI_MODE_SPI_4WIRE) ? SPI_WORD_SET(8)     \
 									     : SPI_WORD_SET(9))
 
-#define RM69310_DEFINE_MIPI(node_id)                                                               \
+#define RM69310TBD_DEFINE_MIPI(node_id)                                                               \
 	static const struct rm69310_config config##node_id = {                                     \
 		.mipi_dev = DEVICE_DT_GET(DT_PARENT(node_id)),                                     \
 		.dbi_config = MIPI_DBI_CONFIG_DT(                                                  \
-			node_id, RM69310_WORD_SIZE(node_id) | SPI_OP_MODE_MASTER, 0),              \
+			node_id, RM69310TBD_WORD_SIZE(node_id) | SPI_OP_MODE_MASTER, 0),              \
 		.height = DT_PROP(node_id, height),                                                \
 		.width = DT_PROP(node_id, width),                                                  \
 		.display_offset = DT_PROP(node_id, display_offset),                                \
@@ -377,4 +368,4 @@ static DEVICE_API(display, rm69310_driver_api) = {
 			CONFIG_DISPLAY_INIT_PRIORITY,                                              \
 			&rm69310_driver_api);
 
-DT_FOREACH_STATUS_OKAY(lenovo_rm69310, RM69310_DEFINE_MIPI)
+DT_FOREACH_STATUS_OKAY(lenovo_rm69310, RM69310TBD_DEFINE_MIPI)
